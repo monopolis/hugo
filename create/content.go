@@ -94,6 +94,70 @@ func NewContent(fs afero.Fs, kind, name string) (err error) {
 	return nil
 }
 
+func NewDiaryContent(fs afero.Fs, section string) (err error) {
+    now := time.Now()
+    page_name := section + "/" + now.Format("2006-01-02.md")
+    name := now.Format("Jan 2, 2006")
+    kind := helpers.GuessSection(page_name)
+
+	jww.INFO.Println("attempting to create ", page_name, "of", kind)
+
+	location := FindArchetype(fs, kind)
+
+	var by []byte
+
+	if location != "" {
+		by, err = afero.ReadFile(fs, location)
+		if err != nil {
+			jww.ERROR.Println(err)
+		}
+	}
+	if location == "" || err != nil {
+		by = []byte("+++\n title = \"title\"\n draft = true \n+++\n")
+	}
+
+	psr, err := parser.ReadFrom(bytes.NewReader(by))
+	if err != nil {
+		return err
+	}
+
+	metadata, err := createMetadata(psr, name)
+	if err != nil {
+		jww.ERROR.Printf("Error processing archetype file %s: %s\n", location, err)
+		return err
+	}
+	page, err := hugolib.NewPage(page_name)
+	if err != nil {
+		return err
+	}
+
+	if err = page.SetSourceMetaData(metadata, parser.FormatToLeadRune(viper.GetString("MetaDataFormat"))); err != nil {
+		return
+	}
+
+	page.SetSourceContent(psr.Content())
+
+	if err = page.SafeSaveSourceAs(filepath.Join(viper.GetString("contentDir"), page_name)); err != nil {
+		return
+	}
+	jww.FEEDBACK.Println(helpers.AbsPathify(filepath.Join(viper.GetString("contentDir"), page_name)), "created")
+
+	editor := viper.GetString("NewContentEditor")
+
+	if editor != "" {
+		jww.FEEDBACK.Printf("Editing %s with %q ...\n", page_name, editor)
+
+		cmd := exec.Command(editor, helpers.AbsPathify(path.Join(viper.GetString("contentDir"), page_name)))
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		return cmd.Run()
+	}
+
+	return nil
+}
+
 // createMetadata generates Metadata for a new page based upon the metadata
 // found in an archetype.
 func createMetadata(archetype parser.Page, name string) (map[string]interface{}, error) {

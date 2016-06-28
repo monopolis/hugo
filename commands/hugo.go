@@ -182,17 +182,18 @@ func AddCommands() {
 	HugoCmd.AddCommand(versionCmd)
 	HugoCmd.AddCommand(configCmd)
 	HugoCmd.AddCommand(checkCmd)
-	HugoCmd.AddCommand(benchmarkCmd)
+//	HugoCmd.AddCommand(benchmarkCmd)
 	HugoCmd.AddCommand(convertCmd)
 	HugoCmd.AddCommand(newCmd)
 	HugoCmd.AddCommand(listCmd)
 	HugoCmd.AddCommand(undraftCmd)
-	HugoCmd.AddCommand(importCmd)
+//	HugoCmd.AddCommand(importCmd)
+    HugoCmd.AddCommand(diaryCmd)
 
-	HugoCmd.AddCommand(genCmd)
-	genCmd.AddCommand(genautocompleteCmd)
-	genCmd.AddCommand(gendocCmd)
-	genCmd.AddCommand(genmanCmd)
+//	HugoCmd.AddCommand(genCmd)
+//	genCmd.AddCommand(genautocompleteCmd)
+//	genCmd.AddCommand(gendocCmd)
+//	genCmd.AddCommand(genmanCmd)
 }
 
 // initHugoBuilderFlags initializes all common flags, typically used by the
